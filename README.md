@@ -19,5 +19,11 @@ which takes care of:
 
 A minimal request example can be found using the [event.http](event.http) (IntelliJ internal http client tester)
 
+## Configuration
+Configuration is located in the [app/src/main/resources/app.yaml](app/src/main/resources/app.yaml)
+
+## Execute locally
+Launch the App.groovy main method or use the command `./gradlew app:run` from the root folder
+
 
 
