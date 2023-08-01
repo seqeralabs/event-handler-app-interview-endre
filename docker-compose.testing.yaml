@@ -1,0 +1,53 @@
+version: "3"
+networks:
+    loadbalancing:
+        ipam:
+            driver: default
+            config:
+                - subnet: "10.0.0.0/8"
+                  gateway: 10.0.0.1
+services:
+    event-handler-app:
+        image: event-handler-app
+        ports:
+            - "8000"
+        deploy:
+            replicas: 2
+        networks:
+            - loadbalancing
+
+    nginx:
+        build: ./nginx
+        ports:
+            - "127.0.0.1:8001:8001"
+        depends_on:
+            - event-handler-app
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.10
+
+    load-generator-1:
+        build:
+            context: ./load-generator
+            args:
+                SLEEP_IN_SEC: 20
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --amount 10 --renderStatusCodes --no-progress
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.11
+
+    load-generator-2:
+        build:
+            context: ./load-generator
+            args:
+                SLEEP_IN_SEC: 25
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --amount 10 --no-progress --debug --renderStatusCodes
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.12
