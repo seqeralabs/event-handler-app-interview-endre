@@ -8,6 +8,8 @@ import groovy.json.JsonSlurper
 import io.seqera.events.dto.Event
 import java.util.UUID
 import java.net.InetAddress
+import java.time.LocalDateTime
+import io.seqera.events.rateLimiter.RateLimiter
 
 @CompileStatic
 class EventHandler implements Handler {
@@ -15,11 +17,13 @@ class EventHandler implements Handler {
     private EventDao eventDao
     private JsonSlurper json
     private UUID handlerId
+    private RateLimiter rateLimiter
 
-    EventHandler(EventDao dao){
+    EventHandler(EventDao dao, RateLimiter rateLimiter){
         this.eventDao = dao
         this.json = new JsonSlurper()
         this.handlerId = UUID.randomUUID();
+        this.rateLimiter = rateLimiter;
     }
 
     @Override
@@ -29,9 +33,8 @@ class EventHandler implements Handler {
 
     @Override
     void handle(HttpExchange http) throws IOException {
-        println "handlerId: ${handlerId}"
-        String ip = extractRelevantIpAddress(http)
-        if (shouldBlockIp(ip)) {
+        println "handlerId: ${handlerId.toString().substring(0,8)} at ${LocalDateTime.now()}"
+        if (!rateLimiter.isRequestAllowed(http)){
             println "REJECTED"
             http.sendResponseHeaders(429, -1)
             return
@@ -72,22 +75,5 @@ class EventHandler implements Handler {
         http.responseBody.withWriter { out ->
             out << response
         }
-    }
-
-    String extractRelevantIpAddress(HttpExchange http) {
-        InetAddress requestIPInet = http.getRemoteAddress().getAddress()
-        String requestIP = requestIPInet.getHostAddress()
-        println "Request IP address: ${requestIP}"
-        def headerIPList = http.getRequestHeaders().get("X-Real-IP")
-        String headerIP = headerIPList.size() > 0 ? headerIPList[0] : null
-        println "X-Real-IP header: ${headerIP}"
-        return headerIP
-    }
-
-    boolean shouldBlockIp(String ip) {
-        // Fake test implementation, which blocks even IPs
-        String[] octets = ip.split("\\.") // the dot "." needs to be escaped in the regex expression
-        String lastOctet = octets[octets.length - 1]
-        return lastOctet.toInteger() % 2 == 0
     }
 }

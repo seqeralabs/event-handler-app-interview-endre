@@ -12,12 +12,12 @@ services:
         ports:
             - "8000"
         deploy:
-            replicas: 2
+            replicas: 3
         networks:
             - loadbalancing
 
     nginx:
-        build: ./nginx
+        build: ./nginx-docker
         ports:
             - "127.0.0.1:8001:8001"
         depends_on:
@@ -26,28 +26,49 @@ services:
             loadbalancing:
                 ipv4_address: 10.0.0.10
 
-    load-generator-1:
+    redis:
+        build: ./redis-docker
+        ports:
+            - "6379"
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.100
+
+    load-generator-1-whitelist:
         build:
-            context: ./load-generator
+            context: ./load-generator-docker
             args:
-                SLEEP_IN_SEC: 20
+                INITIAL_SLEEP_SEC: 20
                 TARGET_URL: http://nginx:8001/events
-                LOAD_TEST_COMMAND: --amount 10 --renderStatusCodes --no-progress
+                LOAD_TEST_COMMAND: --connections 2 --amount 3 --renderStatusCodes --no-progress
         depends_on:
             - nginx
         networks:
             loadbalancing:
                 ipv4_address: 10.0.0.11
 
-    load-generator-2:
+    load-generator-2-blacklist:
         build:
-            context: ./load-generator
+            context: ./load-generator-docker
             args:
-                SLEEP_IN_SEC: 25
+                INITIAL_SLEEP_SEC: 30
                 TARGET_URL: http://nginx:8001/events
-                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --amount 10 --no-progress --debug --renderStatusCodes
+                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --connections 2 --amount 3 --no-progress --debug --renderStatusCodes
         depends_on:
             - nginx
         networks:
             loadbalancing:
-                ipv4_address: 10.0.0.12
+                ipv4_address: 10.0.0.20
+
+    load-generator-3-rate-exceeded:
+        build:
+            context: ./load-generator-docker
+            args:
+                INITIAL_SLEEP_SEC: 40
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --connections 2 --duration 3 --renderStatusCodes --no-progress
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.77

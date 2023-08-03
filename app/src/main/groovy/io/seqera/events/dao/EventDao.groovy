@@ -6,3 +6,4 @@ interface EventDao {
     Event save(Event event)
     List<Event> list();
 }
+
