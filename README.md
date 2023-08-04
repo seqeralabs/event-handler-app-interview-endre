@@ -66,24 +66,16 @@ Expected test results - with default set-up:
 -   load-generator-2-blacklist - will send 3 requests from a blacklisted IP - all of them rejected, 409 HTTP Status code
 -   load-generator-3-rate-exceeded - will send requests during 3 seconds continuously - every second 5 requests should be allowed all others rejected - so in total we expect 3\*5 number of 200 HTTPS Status codes, all other should be 409 HTTP Status code
 
-### Testing Redis
+#### Testing without Redis
 
--   test only redis in docker using redis-cli
+Use the `InMemoryRequestCountDao` instead of the `RedisRequestCountDao` when setting up the wiring of the dependencies in the `App.groovy`. This implementation uses an in-memory hashmap, so data is not shared between instance of event-handler-app.
 
-```
+#### Testing with Redis
 
-docker run --rm --name redis-container
-docker exec -it redis-container redis-cli
+Event-handler-app started locally with gradle and redis running in docker:
 
-```
-
--   test event-handler-app with redis running in docker
-    -   set-up redis.conf with the username/password/bind set-up
-    -   start redis-server with the following command
-
-```
-
-docker run --rm -p 6379:6379 -v "absolute_path_to_redis.conf:/redis.conf" redis redis-server /redis.conf
-./gradlew app:run
-
-```
+-   set-up redis.conf with the username/password/bind set-up
+-   start redis-server with the following command
+    -   `docker run --rm -p 6379:6379 -v "absolute_path_to_redis.conf:/redis.conf" redis redis-server /redis.conf`
+-   modify app.yaml config for the redis (host = `localhost`, password, port)
+-   start application `./gradlew app:run`

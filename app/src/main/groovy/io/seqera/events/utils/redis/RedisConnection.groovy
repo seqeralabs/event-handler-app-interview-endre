@@ -4,6 +4,6 @@ import io.lettuce.core.api.sync.RedisCommands
 
 interface RedisConnection {
 
-    RedisCommands getSyncApi()      
+    RedisCommands getApiConnection()      
     void closeConnection()
 }

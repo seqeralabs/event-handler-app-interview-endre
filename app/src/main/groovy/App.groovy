@@ -4,7 +4,7 @@ import io.seqera.events.dao.EventDao
 import io.seqera.events.dao.SqlEventDao
 import io.seqera.events.dao.RequestCountDao
 import io.seqera.events.dao.RedisRequestCountDao
-import io.seqera.events.dao.FakeRequestCountDao
+import io.seqera.events.dao.InMemoryRequestCountDao
 import io.seqera.events.handler.EventHandler
 import io.seqera.events.handler.Handler
 import io.seqera.events.utils.AppContext
@@ -32,7 +32,8 @@ class App {
         context = buildContext()
         
         EventDao eventDao = new SqlEventDao(context.connectionProvider.getConnection())
-        RequestCountDao requestCountDao = new RedisRequestCountDao(context.redisConnection.getSyncApi())
+        RequestCountDao requestCountDao = new RedisRequestCountDao(context.redisConnection.getApiConnection())
+        //RequestCountDao requestCountDao = new InMemoryRequestCountDao()
         RateLimiter rateLimiter = new CountBasedRateLimiter(requestCountDao, context.rateLimiterConfig)
         
         handlers = [new EventHandler(eventDao, rateLimiter)]
