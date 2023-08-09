@@ -1,10 +1,12 @@
 package io.seqera.events.utils.redis
 
+import groovy.transform.CompileStatic
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 
+@CompileStatic
 class RedisConnectionImpl implements RedisConnection {
 
     private String host
@@ -20,7 +22,7 @@ class RedisConnectionImpl implements RedisConnection {
     }
 
     RedisCommands getApiConnection() {
-        if (connection == null) {
+        if (!connection) {
             def redisUri = RedisURI.Builder.redis(host, port).withPassword(password).build();
             redisClient = RedisClient.create(redisUri);
             connection = redisClient.connect();
@@ -29,7 +31,7 @@ class RedisConnectionImpl implements RedisConnection {
     }
 
     void closeConnection(){
-        if (connection != null) {
+        if (connection) {
             connection.close();
             redisClient.shutdown();
         }

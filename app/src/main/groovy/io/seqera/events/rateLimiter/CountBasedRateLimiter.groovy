@@ -3,8 +3,10 @@ package io.seqera.events.rateLimiter
 import groovy.transform.CompileStatic
 import com.sun.net.httpserver.HttpExchange
 import io.seqera.events.dao.RequestCountDao
+import groovy.util.logging.Slf4j
 
 @CompileStatic
+@Slf4j
 class CountBasedRateLimiter implements RateLimiter {
     
     private RequestCountDao requestCountDao
@@ -16,7 +18,7 @@ class CountBasedRateLimiter implements RateLimiter {
     }
 
     boolean isRequestAllowed(HttpExchange http) {
-        if (!config.enabled) {
+        if (!config.isEnabled()) {
             return true
         }
 
@@ -26,18 +28,18 @@ class CountBasedRateLimiter implements RateLimiter {
         }
         def ip = headers.get("X-Real-IP")[0]
         
-        if (config.ipBlackList.contains(ip)) {
-            println "BLACKLISTED"
+        if (config.getIpBlackList().contains(ip)) {
+            log.debug("BLACKLISTED")
             return false
-        } else if (config.ipWhiteList.contains(ip)) {
-            println "WHITELISTED"
+        } else if (config.getIpWhiteList().contains(ip)) {
+            log.debug("WHITELISTED")
             return true
         }
 
-        def count = requestCountDao.incrementAndGetCount(ip, config.timeIntervalInSec);
-        println "For ${ip} count is ${count}"
-        if (count > config.maxRequestsPerIntervalPerIp){
-            println "RATE LIMIT EXCEEDED"
+        def count = requestCountDao.incrementAndGetCount(ip, config.getTimeIntervalInSec());
+        log.debug("For ${ip} count is ${count}")
+        if (count > config.getMaxRequestsPerIntervalPerIp()){
+            log.debug("RATE LIMIT EXCEEDED")
             return false
         }
 

@@ -62,7 +62,6 @@ public class InMemoryRequestCountDaoTest {
 
     // Act & Assert
     def actualCount = sut.incrementAndGetCount(ip,testTimeIntervalInSec);
-    println "Hello actualCount ${actualCount}"
 
     //Assert
     assertEquals(actualCount,1);

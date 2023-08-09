@@ -16,8 +16,9 @@ import io.seqera.events.utils.redis.RedisConnectionImpl
 import io.seqera.events.rateLimiter.RateLimiter
 import io.seqera.events.rateLimiter.CountBasedRateLimiter
 import io.seqera.events.rateLimiter.RateLimiterConfig
+import groovy.util.logging.Slf4j
 
-
+@Slf4j
 class App {
 
     static PORT = 8000
@@ -51,7 +52,7 @@ class App {
     }
     static HttpServer startServer() {
         return HttpServer.create(new InetSocketAddress(PORT), /*max backlog*/ 0).with {
-            println "Server is listening on ${PORT}, hit Ctrl+C to exit."
+            log.info("Server is listening on ${PORT}, hit Ctrl+C to exit.")
             for (def h : handlers){
                 createContext(h.handlerPath, h)
             }

@@ -10,8 +10,10 @@ import java.util.UUID
 import java.net.InetAddress
 import java.time.LocalDateTime
 import io.seqera.events.rateLimiter.RateLimiter
+import groovy.util.logging.Slf4j
 
 @CompileStatic
+@Slf4j
 class EventHandler implements Handler {
 
     private EventDao eventDao
@@ -33,13 +35,13 @@ class EventHandler implements Handler {
 
     @Override
     void handle(HttpExchange http) throws IOException {
-        println "handlerId: ${handlerId.toString().substring(0,8)} at ${LocalDateTime.now()}"
+        log.debug("handlerId: ${handlerId.toString().substring(0,8)} at ${LocalDateTime.now()}")
         if (!rateLimiter.isRequestAllowed(http)){
-            println "REJECTED"
+            log.debug("REJECTED")
             http.sendResponseHeaders(429, -1)
             return
         }
-        println "ACCEPTED"
+        log.debug("ACCEPTED")
 
         switch (http.requestMethod) {
             case "POST" -> {

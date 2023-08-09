@@ -22,7 +22,7 @@ public class CountBasedRateLimiterTest {
   @Test
   public void whenDisabled_allowEverything(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
-    when(rateLimiterConfig.enabled).thenReturn(false);
+    when(rateLimiterConfig.isEnabled()).thenReturn(false);
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
     // Act & Assert
@@ -33,8 +33,8 @@ public class CountBasedRateLimiterTest {
   public void whenBlackListedIp_Reject(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
     String blackListedIp = "1.1.1.1";
-    when(rateLimiterConfig.enabled).thenReturn(true);
-    when(rateLimiterConfig.ipBlackList).thenReturn(new HashSet<String>(Arrays.asList(blackListedIp)));
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
+    when(rateLimiterConfig.getIpBlackList()).thenReturn(new HashSet<String>(Arrays.asList(blackListedIp)));
 
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
@@ -50,8 +50,8 @@ public class CountBasedRateLimiterTest {
   public void whenWhiteListedIp_Allow(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
     String whiteListedIp = "2.2.2.2";
-    when(rateLimiterConfig.enabled).thenReturn(true);
-    when(rateLimiterConfig.ipWhiteList).thenReturn(new HashSet<String>(Arrays.asList(whiteListedIp)));
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
+    when(rateLimiterConfig.getIpWhiteList()).thenReturn(new HashSet<String>(Arrays.asList(whiteListedIp)));
 
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
@@ -67,9 +67,9 @@ public class CountBasedRateLimiterTest {
   public void whenBelowRateLimit_Allow(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
     String ip = "3.3.3.3";
-    when(rateLimiterConfig.enabled).thenReturn(true);
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
     when(requestCountDao.incrementAndGetCount(eq(ip), anyInt())).thenReturn(4);
-    when(rateLimiterConfig.maxRequestsPerIntervalPerIp).thenReturn(5);
+    when(rateLimiterConfig.getMaxRequestsPerIntervalPerIp()).thenReturn(5);
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
     def headers = new Headers()
@@ -84,9 +84,9 @@ public class CountBasedRateLimiterTest {
   public void whenAboveRateLimit_Reject(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
     String ip = "4.4.4.4";
-    when(rateLimiterConfig.enabled).thenReturn(true);
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
     when(requestCountDao.incrementAndGetCount(eq(ip), anyInt())).thenReturn(6);
-    when(rateLimiterConfig.maxRequestsPerIntervalPerIp).thenReturn(5);
+    when(rateLimiterConfig.getMaxRequestsPerIntervalPerIp()).thenReturn(5);
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
     def headers = new Headers()
