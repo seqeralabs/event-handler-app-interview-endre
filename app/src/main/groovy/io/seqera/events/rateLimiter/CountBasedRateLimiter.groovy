@@ -23,7 +23,8 @@ class CountBasedRateLimiter implements RateLimiter {
         }
 
         def headers = http.getRequestHeaders()
-        if (headers == null || headers.get("X-Real-IP").size() == 0) {
+        if (!headers || !headers.get("X-Real-IP") || !headers.get("X-Real-IP").size() == 0) {
+            log.debug("Missing X-Real-IP header")
             return false
         }
         def ip = headers.get("X-Real-IP")[0]

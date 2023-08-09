@@ -20,13 +20,37 @@ import io.seqera.events.rateLimiter.CountBasedRateLimiter;
 @ExtendWith(MockitoExtension.class)
 public class CountBasedRateLimiterTest {
   @Test
-  public void whenDisabled_allowEverything(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
+  public void whenDisabled_Allow(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
     // Arrange
     when(rateLimiterConfig.isEnabled()).thenReturn(false);
     CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
 
     // Act & Assert
     assertTrue(sut.isRequestAllowed(httpExchange));
+  }
+
+  @Test
+  public void whenMissingHeaders_Reject(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
+    // Arrange
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
+    CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
+
+    // Act & Assert
+    assertFalse(sut.isRequestAllowed(httpExchange));
+  }
+
+  @Test
+  public void whenMissingXRealIpHeader_Reject(@Mock RequestCountDao requestCountDao, @Mock RateLimiterConfig rateLimiterConfig, @Mock HttpExchange httpExchange) {
+    // Arrange
+    when(rateLimiterConfig.isEnabled()).thenReturn(true);
+    CountBasedRateLimiter sut = new CountBasedRateLimiter(requestCountDao, rateLimiterConfig);
+
+    def headers = new Headers()
+    headers.add("Content-type", "application/json")
+    when(httpExchange.getRequestHeaders()).thenReturn(headers);
+
+    // Act & Assert
+    assertFalse(sut.isRequestAllowed(httpExchange));
   }
 
   @Test

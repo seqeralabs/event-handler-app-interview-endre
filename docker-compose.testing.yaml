@@ -40,7 +40,7 @@ services:
             args:
                 INITIAL_SLEEP_SEC: 20
                 TARGET_URL: http://nginx:8001/events
-                LOAD_TEST_COMMAND: --connections 2 --amount 3 --renderStatusCodes --no-progress
+                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --connections 2 --amount 3 --no-progress --debug --renderStatusCodes
         depends_on:
             - nginx
         networks:
@@ -53,7 +53,7 @@ services:
             args:
                 INITIAL_SLEEP_SEC: 30
                 TARGET_URL: http://nginx:8001/events
-                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --connections 2 --amount 3 --no-progress --debug --renderStatusCodes
+                LOAD_TEST_COMMAND: --connections 2 --amount 3 --renderStatusCodes --no-progress
         depends_on:
             - nginx
         networks:
