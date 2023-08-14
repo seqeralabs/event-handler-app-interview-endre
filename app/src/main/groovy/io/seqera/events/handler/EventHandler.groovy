@@ -19,13 +19,11 @@ class EventHandler implements Handler {
     private EventDao eventDao
     private JsonSlurper json
     private UUID handlerId
-    private RateLimiter rateLimiter
 
-    EventHandler(EventDao dao, RateLimiter rateLimiter){
+    EventHandler(EventDao dao){
         this.eventDao = dao
         this.json = new JsonSlurper()
         this.handlerId = UUID.randomUUID();
-        this.rateLimiter = rateLimiter;
     }
 
     @Override
@@ -36,13 +34,6 @@ class EventHandler implements Handler {
     @Override
     void handle(HttpExchange http) throws IOException {
         log.debug("handlerId: ${handlerId.toString().substring(0,8)} at ${LocalDateTime.now()}")
-        if (!rateLimiter.isRequestAllowed(http)){
-            log.debug("REJECTED")
-            http.sendResponseHeaders(429, -1)
-            return
-        }
-        log.debug("ACCEPTED")
-
         switch (http.requestMethod) {
             case "POST" -> {
                 handlePost(http)

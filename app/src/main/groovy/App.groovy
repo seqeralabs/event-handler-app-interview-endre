@@ -19,7 +19,10 @@ import io.seqera.events.rateLimiter.RateLimiter
 import io.seqera.events.rateLimiter.RateLimiterConfig
 import io.seqera.events.rateLimiter.CountBasedRateLimiter
 import io.seqera.events.rateLimiter.RateLimiterConfig
+import io.seqera.events.filter.RateLimiterFilter
 import groovy.util.logging.Slf4j
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.Filter;
 
 @Slf4j
 @CompileStatic
@@ -27,6 +30,7 @@ class App {
 
     static Integer PORT = 8000
     static Handler[] handlers
+    static Filter filter
     static HttpServer httpServer
     static AppContext context
     static ConnectionProvider connectionProvider
@@ -41,7 +45,8 @@ class App {
         //RequestCountDao requestCountDao = new InMemoryRequestCountDao()
         RateLimiter rateLimiter = new CountBasedRateLimiter(requestCountDao, context.rateLimiterConfig)
         
-        handlers = [new EventHandler(eventDao, rateLimiter)]
+        handlers = [new EventHandler(eventDao)]
+        filter = new RateLimiterFilter(rateLimiter)
         httpServer = startServer()
     }
 
@@ -58,8 +63,10 @@ class App {
         return HttpServer.create(new InetSocketAddress(PORT), /*max backlog*/ 0).with {
             log.info("Server is listening on ${PORT}, hit Ctrl+C to exit.")
             for (def h : handlers){
-                createContext(h.handlerPath, h)
+                HttpContext context = createContext(h.handlerPath, h)
+                context.getFilters().add(filter);
             }
+            
             start()
         }
     }
