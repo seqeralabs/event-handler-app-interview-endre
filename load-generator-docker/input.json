@@ -1,0 +1,7 @@
+{
+    "workspaceId": "workspaceId",
+    "userId": "userId",
+    "mem": 100,
+    "cpu": 80,
+    "io": 4
+}

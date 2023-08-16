@@ -1,0 +1,74 @@
+version: "3"
+networks:
+    loadbalancing:
+        ipam:
+            driver: default
+            config:
+                - subnet: "10.0.0.0/8"
+                  gateway: 10.0.0.1
+services:
+    event-handler-app:
+        image: event-handler-app
+        ports:
+            - "8000"
+        deploy:
+            replicas: 3
+        networks:
+            - loadbalancing
+
+    nginx:
+        build: ./nginx-docker
+        ports:
+            - "127.0.0.1:8001:8001"
+        depends_on:
+            - event-handler-app
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.10
+
+    redis:
+        build: ./redis-docker
+        ports:
+            - "6379"
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.100
+
+    load-generator-1-whitelist:
+        build:
+            context: ./load-generator-docker
+            args:
+                INITIAL_SLEEP_SEC: 20
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --method POST --headers Content-Type=application/json --input input.json --connections 2 --amount 3 --no-progress --debug --renderStatusCodes
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.11
+
+    load-generator-2-blacklist:
+        build:
+            context: ./load-generator-docker
+            args:
+                INITIAL_SLEEP_SEC: 30
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --connections 2 --amount 3 --renderStatusCodes --no-progress
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.20
+
+    load-generator-3-rate-exceeded:
+        build:
+            context: ./load-generator-docker
+            args:
+                INITIAL_SLEEP_SEC: 40
+                TARGET_URL: http://nginx:8001/events
+                LOAD_TEST_COMMAND: --connections 2 --duration 3 --renderStatusCodes --no-progress
+        depends_on:
+            - nginx
+        networks:
+            loadbalancing:
+                ipv4_address: 10.0.0.77

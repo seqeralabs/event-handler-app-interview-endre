@@ -6,16 +6,24 @@ import groovy.transform.CompileStatic
 import io.seqera.events.dao.EventDao
 import groovy.json.JsonSlurper
 import io.seqera.events.dto.Event
+import java.util.UUID
+import java.net.InetAddress
+import java.time.LocalDateTime
+import io.seqera.events.rateLimiter.RateLimiter
+import groovy.util.logging.Slf4j
 
 @CompileStatic
+@Slf4j
 class EventHandler implements Handler {
 
     private EventDao eventDao
     private JsonSlurper json
+    private UUID handlerId
 
     EventHandler(EventDao dao){
         this.eventDao = dao
         this.json = new JsonSlurper()
+        this.handlerId = UUID.randomUUID();
     }
 
     @Override
@@ -25,6 +33,7 @@ class EventHandler implements Handler {
 
     @Override
     void handle(HttpExchange http) throws IOException {
+        log.debug("handlerId: ${handlerId.toString().substring(0,8)} at ${LocalDateTime.now()}")
         switch (http.requestMethod) {
             case "POST" -> {
                 handlePost(http)

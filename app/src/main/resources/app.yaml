@@ -8,4 +8,31 @@ app:
     url: 'jdbc:hsqldb:mem:events'
     driver: 'org.hsqldb.jdbcDriver'
     dependency: '"org.hsqldb:hsqldb:2.7.2"'
+  
+  rateLimit:
+    enabled: true
+    timeIntervalInSec: 1
+    maxRequestsPerIntervalPerIp: 5
+    ipWhiteList: 
+      - '10.0.0.11'
+      - '10.0.0.12'
+      - '10.0.0.13'
+      - '10.0.0.14'
+    ipBlackList: 
+      - '10.0.0.20'
+      - '10.0.0.30'
+      - '10.0.0.40'
+
+  redis:
+    #
+    #  For host value
+    #  
+    # Use localhost when running the event-handler-app locally and running redis with docker
+    #  host: localhost
+    #
+    #  Use 10.0.0.100 when running both the event-handler-app and redis with docker-compose
+    host: '10.0.0.100'
+    #
+    port: 6379
+    password: redis-password
 
